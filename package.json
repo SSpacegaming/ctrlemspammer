@@ -1,0 +1,37 @@
+{
+  "name": "ctrlem-image-queue",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Queue multiple images for upload to CtrlEm",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "package": "pkg server.js --targets node22-win-x64 --output dist/CtrlEmImageQueue.exe",
+    "package:window": "electron-builder --win portable"
+  },
+  "devDependencies": {
+    "@yao-pkg/pkg": "^6.10.2",
+    "electron": "^38.2.1",
+    "electron-builder": "^26.0.12"
+  },
+  "main": "electron-main.js",
+  "build": {
+    "appId": "com.ctrlem.imagequeue",
+    "productName": "CtrlEm Image Queue",
+    "asar": true,
+    "files": [
+      "electron-main.js",
+      "server.js",
+      "public/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        "portable"
+      ]
+    },
+    "portable": {
+      "artifactName": "CtrlEmImageQueue.exe"
+    }
+  }
+}

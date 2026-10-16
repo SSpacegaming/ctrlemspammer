@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CtrlEm Image Queue</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <header class="hero">
+        <p class="eyebrow">CtrlEm utility</p>
+        <h1>Image queue</h1>
+        <p class="lede">Send a run of image commands without repeating the same setup.</p>
+      </header>
+      <section class="panel">
+        <div class="panel-heading"><div><p class="eyebrow">Connection</p><h2>Choose a target</h2></div><span class="privacy">Your key never leaves this local app</span></div>
+        <div class="grid">
+          <label>API key<input id="apiKey" type="password" placeholder="ce_..." autocomplete="off" /></label>
+          <label>Target control code<input id="target" type="text" maxlength="5" pattern="[A-Za-z0-9]{5}" placeholder="AB12C" autocomplete="off" /></label>
+        </div>
+        <p class="hint">Enter the 5-character control code of the person you want to target. The user must be online and opted in to API access.</p>
+      </section>
+      <section class="panel">
+        <div class="panel-heading"><div><p class="eyebrow">Image hosting</p><h2>ImageChest uploads</h2></div><span class="privacy">Unlisted · NSFW marked</span></div>
+        <div class="grid">
+          <label>ImageChest personal access token<input id="imageChestToken" type="password" placeholder="Personal access token" autocomplete="off" /></label>
+          <label>Upload mode<select id="uploadMode"><option value="individual">Individual · no limit</option><option value="batch">Batch · up to 20</option></select></label>
+        </div>
+        <div class="upload-row">
+          <label class="file-picker">Select images
+            <input id="imageFiles" type="file" accept="image/*" multiple />
+          </label>
+          <button id="uploadButton" class="button primary" type="button">Upload as NSFW</button>
+        </div>
+        <p id="uploadHint" class="hint">Each image is uploaded as its own unlisted (hidden), NSFW-marked post. Titles use the filename and sequence number, such as <code>photo+#1</code>.</p>
+      </section>
+      <section class="panel">
+        <div class="panel-heading"><div><p class="eyebrow">Queue</p><h2><span id="queueCount">0</span> images</h2></div><div class="actions"><button id="clearButton" class="button subtle" type="button">Clear</button><button id="sendButton" class="button primary" type="button" disabled>Send queue</button></div></div>
+        <div class="add-row">
+          <input id="imageUrl" type="url" placeholder="https://example.com/image.jpg" />
+          <select id="command"><option value="popupImage">Popup image</option><option value="changeWallpaper">Change wallpaper</option></select>
+          <button id="addButton" class="button primary" type="button">Add image</button>
+        </div>
+        <p class="hint">CtrlEm receives a URL. Images must be publicly reachable by the target device; local file paths and localhost URLs will not work.</p>
+        <div id="queue" class="queue"></div><div id="emptyState" class="empty-state">Add your first image URL above.</div>
+      </section>
+      <p id="notice" class="notice" role="status"></p>
+    </main>
+    <script src="/app.js"></script>
+  </body>
+</html>
