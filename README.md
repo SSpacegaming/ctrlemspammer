@@ -22,10 +22,10 @@ The output is in `dist\CtrlEmImageQueue.exe`. Share that one file; recipients do
 The app uses the documented CtrlEm API:
 
 - A direct 5-character control code is used for the target, so the app does not depend on the users-list endpoint.
-- `POST /api/v1/command` with `popupImage` or `changeWallpaper`.
-- The image is sent as the command's URL argument, so it must be publicly reachable by the target device.
+- `POST /api/v1/command` with `popupImage`, `changeWallpaper`, or `videoOverlay`.
+- Images, GIFs, and videos are sent as public media URLs, so they must be reachable by the target device.
 - Queue items are sent sequentially with a three-second delay to respect CtrlEm's per-user cooldown.
-- Local images can be uploaded directly to ImageChest as unlisted, hidden NSFW-marked posts; the resulting CDN URLs are added to the queue. Choose batch mode for up to 20 images in one post, or individual mode for no batch limit.
+- Images, GIFs, and videos can be uploaded directly to ImageChest as unlisted, hidden NSFW-marked posts; the resulting CDN URLs are added to the queue. Choose batch mode for up to 20 files in one post, or individual mode for no batch limit.
 
 The API keys and ImageChest token are kept in the browser and proxied only through the local server; they are not stored on disk.
 

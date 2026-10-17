@@ -29,20 +29,20 @@
         </div>
         <div class="upload-row">
           <label class="file-picker">Select images
-            <input id="imageFiles" type="file" accept="image/*" multiple />
+            <input id="imageFiles" type="file" accept="image/*,video/*" multiple />
           </label>
           <button id="uploadButton" class="button primary" type="button">Upload as NSFW</button>
         </div>
-        <p id="uploadHint" class="hint">Each image is uploaded as its own unlisted (hidden), NSFW-marked post. Titles use the filename and sequence number, such as <code>photo+#1</code>.</p>
+        <p id="uploadHint" class="hint">Images, GIFs, and videos are uploaded as unlisted (hidden), NSFW-marked posts.</p>
       </section>
       <section class="panel">
         <div class="panel-heading"><div><p class="eyebrow">Queue</p><h2><span id="queueCount">0</span> images</h2></div><div class="actions"><button id="clearButton" class="button subtle" type="button">Clear</button><button id="sendButton" class="button primary" type="button" disabled>Send queue</button></div></div>
         <div class="add-row">
-          <input id="imageUrl" type="url" placeholder="https://example.com/image.jpg" />
-          <select id="command"><option value="popupImage">Popup image</option><option value="changeWallpaper">Change wallpaper</option></select>
+          <input id="imageUrl" type="url" placeholder="https://example.com/image.jpg or video.mp4" />
+          <select id="command"><option value="popupImage">Popup image/GIF</option><option value="changeWallpaper">Change wallpaper</option><option value="videoOverlay">Video overlay</option></select>
           <button id="addButton" class="button primary" type="button">Add image</button>
         </div>
-        <p class="hint">CtrlEm receives a URL. Images must be publicly reachable by the target device; local file paths and localhost URLs will not work.</p>
+        <p class="hint">CtrlEm receives a URL. Media must be publicly reachable by the target device; local file paths and localhost URLs will not work.</p>
         <div id="queue" class="queue"></div><div id="emptyState" class="empty-state">Add your first image URL above.</div>
       </section>
       <p id="notice" class="notice" role="status"></p>

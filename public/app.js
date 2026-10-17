@@ -8,19 +8,25 @@ function render() {
   $("sendButton").disabled = !state.items.length || state.sending || state.uploading;
   $("clearButton").disabled = !state.items.length || state.sending || state.uploading;
   $("uploadButton").disabled = state.uploading;
-  $("queue").innerHTML = state.items.map((item, i) => `<article class="queue-item"><img src="${esc(item.url)}" alt="" onerror="this.style.opacity='.25'" /><div><div class="filename">${esc(item.filename || (item.command === "popupImage" ? "Popup image" : "Wallpaper"))}</div><div class="url" title="${esc(item.url)}">${esc(item.url)}</div></div><span class="status ${item.status}">${esc(item.statusLabel)}</span><button class="remove" data-remove="${i}" type="button" ${state.sending || state.uploading ? "disabled" : ""}>×</button></article>`).join("");
+  $("queue").innerHTML = state.items.map((item, i) => `<article class="queue-item">${mediaPreview(item)}<div><div class="filename">${esc(item.filename || commandLabel(item.command))}</div><div class="url" title="${esc(item.url)}">${esc(item.url)}</div></div><span class="status ${item.status}">${esc(item.statusLabel)}</span><button class="remove" data-remove="${i}" type="button" ${state.sending || state.uploading ? "disabled" : ""}>×</button></article>`).join("");
+}
+function commandLabel(command) { return command === "videoOverlay" ? "Video overlay" : command === "changeWallpaper" ? "Wallpaper" : "Popup image"; }
+function mediaPreview(item) {
+  if (item.mediaType?.startsWith("video/") || item.command === "videoOverlay") return `<video src="${esc(item.url)}" muted preload="metadata" onerror="this.style.opacity='.25'"></video>`;
+  return `<img src="${esc(item.url)}" alt="" onerror="this.style.opacity='.25'" />`;
 }
 function addImage() {
   const url = $("imageUrl").value.trim();
   try { const parsed = new URL(url); if (!["http:","https:"].includes(parsed.protocol)) throw new Error(); } catch { return notice("Enter a valid http(s) image URL.", true); }
-  state.items.push({ url, command: $("command").value, status: "", statusLabel: "Queued" });
+  state.items.push({ url, command: $("command").value, mediaType: mediaTypeFromUrl(url), status: "", statusLabel: "Queued" });
   $("imageUrl").value = ""; render();
 }
 async function uploadImages() {
   const token = $("imageChestToken").value.trim();
   const files = [...$("imageFiles").files];
   if (!token) return notice("Enter your ImageChest personal access token.", true);
-  if (!files.length) return notice("Select one or more images first.", true);
+  if (!files.length) return notice("Select one or more images or videos first.", true);
+  if (files.some((file) => !file.type.startsWith("image/") && !file.type.startsWith("video/"))) return notice("Only images, GIFs, and videos can be uploaded.", true);
   const mode = $("uploadMode").value;
   if (mode === "batch" && files.length > 20) return notice("Batch mode supports up to 20 images. Choose individual mode for more.", true);
   state.uploading = true;
@@ -42,7 +48,8 @@ async function uploadImages() {
         command: $("command").value,
         status: "",
         statusLabel: "Queued",
-        filename: files[index]?.name || image.link.split("/").pop()
+        filename: files[index]?.name || image.link.split("/").pop(),
+        mediaType: files[index]?.type
       }));
       notice(`${uploadedImages.length} images uploaded as one NSFW-marked batch and added to the queue.`);
     } catch (error) {
@@ -73,7 +80,8 @@ async function uploadImages() {
         command: $("command").value,
         status: "",
         statusLabel: "Queued",
-        filename: `${titlePrefix}+#${index + 1}`
+        filename: `${titlePrefix}+#${index + 1}`,
+        mediaType: file.type
       });
       uploaded += 1;
       notice(`Uploaded ${uploaded} of ${files.length} images to ImageChest.`);
@@ -93,6 +101,10 @@ async function asBase64(file) {
   const bytes = new Uint8Array(buffer);
   for (let i = 0; i < bytes.length; i += 0x8000) binary += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
   return btoa(binary);
+}
+function mediaTypeFromUrl(url) {
+  const path = new URL(url).pathname.toLowerCase();
+  return /\.(mp4|webm|mov|m4v|avi)(?:$|\.)/.test(path) ? "video/*" : "image/*";
 }
 async function sendQueue() {
   const apiKey = $("apiKey").value.trim(), target = $("target").value.trim().toUpperCase();
