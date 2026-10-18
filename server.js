@@ -38,7 +38,7 @@ async function readBody(request) {
 }
 
 function apiHeaders(apiKey) {
-  return { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" };
+  return { Authorization: "Bearer " + apiKey, "Content-Type": "application/json" };
 }
 
 async function proxyApi(request, response, path, upstreamMethod = request.method) {
@@ -57,7 +57,7 @@ async function proxyApi(request, response, path, upstreamMethod = request.method
   }
 
   try {
-    const upstream = await fetch(`${apiBase}${path}`, options);
+    const upstream = await fetch(apiBase + path, options);
     const text = await upstream.text();
     let result;
     try { result = JSON.parse(text); } catch { result = { raw: text.slice(0, 2000) }; }
@@ -65,7 +65,7 @@ async function proxyApi(request, response, path, upstreamMethod = request.method
       ok: upstream.ok, status: upstream.status, result
     });
   } catch (error) {
-    return sendJson(response, 502, { error: `CtrlEm request failed: ${error.message}` });
+    return sendJson(response, 502, { error: "CtrlEm request failed: " + error.message });
   }
 }
 
@@ -87,8 +87,8 @@ async function uploadToImageChest(request, response) {
     if (!body.token?.trim()) return sendJson(response, 400, { error: "An ImageChest token is required." });
 
     try {
-      const authHeaders = { Authorization: `Bearer ${body.token.trim()}` };
-      const userResponse = await fetch(`${imageChestBase}/users/me`, {
+      const authHeaders = { Authorization: "Bearer " + body.token };
+      const userResponse = await fetch(imageChestBase + "/users/me", {
         headers: authHeaders,
         signal: AbortSignal.timeout(30000)
       });
@@ -103,7 +103,7 @@ async function uploadToImageChest(request, response) {
       let lastPage = 1;
       do {
         const postsResponse = await fetch(
-          `${imageChestBase}/user/${encodeURIComponent(userResult.data.name)}/posts?per_page=100&sort=new&page=${page}`,
+          imageChestBase + "/user/" + encodeURIComponent(userResult.data.name) + "/posts?per_page=100&sort=new&page=" + page,
           { headers: authHeaders, signal: AbortSignal.timeout(30000) }
         );
         const postsText = await postsResponse.text();
@@ -118,9 +118,10 @@ async function uploadToImageChest(request, response) {
 
       return sendJson(response, 200, { ok: true, result: { posts } });
     } catch (error) {
-      return sendJson(response, 502, { error: `ImageChest lookup failed: ${error.message}` });
+      return sendJson(response, 502, { error: "ImageChest lookup failed: " + error.message });
     }
   }
+
   if (!body.token?.trim() || !Array.isArray(body.images) || body.images.length === 0) {
     return sendJson(response, 400, { error: "An ImageChest token and at least one image are required." });
   }
@@ -144,9 +145,9 @@ async function uploadToImageChest(request, response) {
   }
 
   try {
-    const upstream = await fetch(`${imageChestBase}/post`, {
+    const upstream = await fetch(imageChestBase + "/post", {
       method: "POST",
-      headers: { Authorization: `Bearer ${body.token.trim()}` },
+      headers: { Authorization: "Bearer " + body.token },
       body: form,
       signal: AbortSignal.timeout(120000)
     });
@@ -157,7 +158,7 @@ async function uploadToImageChest(request, response) {
       ok: upstream.ok, status: upstream.status, result
     });
   } catch (error) {
-    return sendJson(response, 502, { error: `ImageChest request failed: ${error.message}` });
+    return sendJson(response, 502, { error: "ImageChest request failed: " + error.message });
   }
 }
 
@@ -174,13 +175,13 @@ async function serveStatic(request, response) {
 
 function createAppServer() {
   return createServer(async (request, response) => {
-  if (request.method === "GET" && request.url === "/api/version") return sendVersion(response);
-  if (request.method === "POST" && request.url === "/api/users") return proxyApi(request, response, "/users", "GET");
-  if (request.method === "POST" && request.url === "/api/command") return proxyApi(request, response, "/command");
-  if (request.method === "POST" && request.url === "/api/imgchest/upload") return uploadToImageChest(request, response);
-  if (request.method === "POST" && request.url === "/api/imgchest/posts") return listImageChestPosts(request, response);
-  if (request.method === "GET") return serveStatic(request, response);
-  sendJson(response, 405, { error: "Method not allowed." });
+    if (request.method === "GET" && request.url === "/api/version") return sendVersion(response);
+    if (request.method === "POST" && request.url === "/api/users") return proxyApi(request, response, "/users", "GET");
+    if (request.method === "POST" && request.url === "/api/command") return proxyApi(request, response, "/command");
+    if (request.method === "POST" && request.url === "/api/imgchest/upload") return uploadToImageChest(request, response);
+    if (request.method === "POST" && request.url === "/api/imgchest/posts") return listImageChestPosts(request, response);
+    if (request.method === "GET") return serveStatic(request, response);
+    sendJson(response, 405, { error: "Method not allowed." });
   });
 }
 
@@ -197,9 +198,9 @@ export function startServer(port = configuredPort) {
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   startServer().then(({ port }) => {
-    console.log(`CtrlEm image queue running at http://127.0.0.1:${port}`);
+    console.log("CtrlEm image queue running at http://127.0.0.1:" + port);
   }).catch((error) => {
-    console.error(`Could not start CtrlEm image queue: ${error.message}`);
+    console.error("Could not start CtrlEm image queue: " + error.message);
     process.exitCode = 1;
   });
 }

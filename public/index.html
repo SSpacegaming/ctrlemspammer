@@ -3,58 +3,210 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Queue multiple images for upload to CtrlEm - Send a run of image commands without repeating the same setup" />
+    <meta name="theme-color" content="#0d0e10" />
     <title>CtrlEm Image Queue</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/styles.css" />
   </head>
   <body>
-    <main class="shell">
-      <header class="hero">
-        <div class="hero-top"><p class="eyebrow">CtrlEm utility</p><button id="settingsButton" class="button subtle" type="button">Settings</button></div>
-        <h1>Image queue</h1>
+    <main class="shell" role="main">
+      <!-- Hero Section -->
+      <header class="hero" role="banner">
+        <div class="hero-top">
+          <p class="eyebrow">CtrlEm Utility</p>
+          <button id="settingsButton" class="button subtle" type="button" aria-label="Open settings">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="3"></circle>
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+            </svg>
+            <span>Settings</span>
+          </button>
+        </div>
+        <h1>Image Queue</h1>
         <p class="lede">Send a run of image commands without repeating the same setup.</p>
       </header>
-      <section class="panel">
-        <div class="panel-heading"><div><p class="eyebrow">Connection</p><h2>Choose a target</h2></div><span class="privacy">Your key never leaves this local app</span></div>
-        <div class="grid"><label>Target control code<input id="target" type="text" maxlength="5" pattern="[A-Za-z0-9]{5}" placeholder="AB12C" autocomplete="off" /></label></div>
-        <div class="saved-code-row">
-          <select id="savedCodes" aria-label="Saved control codes"><option value="">Saved control codes</option></select>
-          <input id="codeName" type="text" placeholder="Name this control code" />
-          <button id="saveCodeButton" class="button subtle" type="button">Save code</button>
-          <button id="deleteCodeButton" class="button subtle" type="button" disabled>Delete</button>
+
+      <!-- Connection Panel -->
+      <section class="panel" aria-labelledby="connection-heading">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow" id="connection-heading">Connection</p>
+            <h2>Choose a Target</h2>
+          </div>
+          <span class="privacy" aria-label="Privacy info">
+            <span aria-hidden="true"></span>Your key never leaves this local app
+          </span>
         </div>
-        <p class="hint">Enter the 5-character control code of the person you want to target. The user must be online and opted in to API access.</p>
-      </section>
-      <section class="panel">
-        <div class="panel-heading"><div><p class="eyebrow">Image hosting</p><h2>ImageChest uploads</h2></div><span class="privacy">Unlisted · NSFW marked</span></div>
-        <div class="grid"><label>Upload mode<select id="uploadMode"><option value="individual">Individual · no limit</option><option value="batch">Batch · up to 20</option></select></label></div>
-        <div class="upload-row">
-          <label class="file-picker">Select images
-            <input id="imageFiles" type="file" accept="image/*,video/*" multiple />
+
+        <div class="grid">
+          <label for="target">
+            Target Control Code
+            <span>5-character code of the person you want to target</span>
           </label>
-          <button id="uploadButton" class="button primary" type="button">Upload as NSFW</button>
         </div>
-        <p id="uploadHint" class="hint">Images, GIFs, and videos are uploaded as unlisted (hidden), NSFW-marked posts.</p>
-      </section>
-      <section class="panel">
-        <div class="panel-heading"><div><p class="eyebrow">Queue</p><h2><span id="queueCount">0</span> images</h2></div><div class="actions"><button id="clearButton" class="button subtle" type="button">Clear</button><button id="sendButton" class="button primary" type="button" disabled>Send queue</button></div></div>
-        <div class="add-row">
-          <input id="imageUrl" type="url" placeholder="https://example.com/image.jpg or video.mp4" />
-          <select id="command"><option value="popupImage">Popup image/GIF</option><option value="changeWallpaper">Change wallpaper</option><option value="videoOverlay">Video overlay</option></select>
-          <button id="addButton" class="button primary" type="button">Add image</button>
+
+        <div class="saved-codes-row">
+          <label for="savedCodes" class="visually-hidden">Saved control codes</label>
+          <select id="savedCodes" aria-label="Saved control codes">
+            <option value="">Saved control codes</option>
+          </select>
+          <input id="codeName" type="text" placeholder="Name this control code" aria-label="Name for this control code" />
+          <button id="saveCodeButton" class="button subtle" type="button">Save code</button>
+          <button id="deleteCodeButton" class="button subtle" type="button" disabled aria-label="Delete saved control code">Delete</button>
         </div>
-        <p class="hint">CtrlEm receives a URL. Media must be publicly reachable by the target device; local file paths and localhost URLs will not work.</p>
-        <div id="queue" class="queue"></div><div id="emptyState" class="empty-state">Add your first image URL above.</div>
+
+        <p class="hint" id="target-hint">Enter the 5-character control code of the person you want to target. The user must be online and opted in to API access.</p>
       </section>
-      <p id="notice" class="notice" role="status"></p>
+
+      <!-- Image Hosting Panel -->
+      <section class="panel" aria-labelledby="hosting-heading">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow" id="hosting-heading">Image Hosting</p>
+            <h2>ImageChest Uploads</h2>
+          </div>
+          <span class="privacy" aria-label="Privacy info">
+            <span aria-hidden="true"></span>Unlisted · NSFW marked
+          </span>
+        </div>
+
+        <div class="grid">
+          <label for="uploadMode">
+            Upload Mode
+            <span>How to upload multiple images</span>
+          </label>
+        </div>
+
+        <div class="upload-area" id="uploadArea" role="button" tabindex="0" aria-label="Select images or videos to upload">
+          <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="17 8 12 3 7 8"></polyline>
+            <line x1="12" y1="3" x2="12" y2="15"></line>
+          </svg>
+          <p class="upload-text">Drag & drop or <strong>click to select</strong> images and videos</p>
+          <p class="upload-hint" id="uploadHint">Images, GIFs, and videos are uploaded as unlisted (hidden), NSFW-marked posts.</p>
+          <input id="imageFiles" type="file" accept="image/*,video/*" multiple aria-label="Select image or video files" hidden />
+        </div>
+
+        <div class="row" style="justify-content: flex-end; margin-top: var(--space-sm);">
+          <button id="uploadButton" class="button primary" type="button" aria-label="Upload selected files to ImageChest">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="17 8 12 3 7 8"></polyline>
+              <line x1="12" y1="3" x2="12" y2="15"></line>
+            </svg>
+            <span>Upload as NSFW</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- Queue Panel -->
+      <section class="panel" aria-labelledby="queue-heading">
+        <div class="queue-header">
+          <div class="panel-heading" style="margin-bottom: 0;">
+            <div>
+              <p class="eyebrow" id="queue-heading">Queue</p>
+              <h2><span id="queueCount" class="queue-count">0</span> images</h2>
+            </div>
+          </div>
+          <div class="actions">
+            <button id="clearButton" class="button subtle" type="button" disabled aria-label="Clear queue">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <polyline points="3 6 5 6 21 6"></polyline>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+              </svg>
+              <span>Clear</span>
+            </button>
+            <button id="sendButton" class="button primary" type="button" disabled aria-label="Send queue to target">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <line x1="22" y1="2" x2="11" y2="13"></line>
+                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+              </svg>
+              <span>Send Queue</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="row add-row" style="margin-bottom: var(--space-md);">
+          <label for="imageUrl" class="visually-hidden">Image or video URL</label>
+          <input id="imageUrl" type="url" placeholder="https://example.com/image.jpg or video.mp4" aria-describedby="url-hint" />
+          <label for="command" class="visually-hidden">Command type</label>
+          <select id="command" aria-label="Command type">
+            <option value="popupImage">Popup image/GIF</option>
+            <option value="changeWallpaper">Change wallpaper</option>
+            <option value="videoOverlay">Video overlay</option>
+          </select>
+          <button id="addButton" class="button primary" type="button" aria-label="Add image to queue">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            <span>Add Image</span>
+          </button>
+        </div>
+
+        <p class="hint" id="url-hint">CtrlEm receives a URL. Media must be publicly reachable by the target device; local file paths and localhost URLs will not work.</p>
+
+        <div id="queue" class="queue" role="list" aria-label="Image queue"></div>
+        <div id="emptyState" class="empty-state" role="status" aria-live="polite">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+            <circle cx="8.5" cy="8.5" r="1.5"></circle>
+            <polyline points="21 15 16 10 5 21"></polyline>
+          </svg>
+          <p>Add your first image URL above</p>
+          <p class="hint">Or upload images directly using ImageChest</p>
+        </div>
+      </section>
+
+      <!-- Notice/Toast -->
+      <div id="notice" class="notice" role="status" aria-live="polite" aria-atomic="true"></div>
     </main>
-    <dialog id="settingsDialog" class="settings-dialog">
-      <div class="dialog-heading"><div><p class="eyebrow">Preferences</p><h2>Settings</h2></div><button id="closeSettings" class="remove" type="button">×</button></div>
-      <label>CtrlEm API key<input id="apiKey" type="password" placeholder="ce_..." autocomplete="off" /></label>
-      <label>ImageChest personal access token<input id="imageChestToken" type="password" placeholder="Personal access token" autocomplete="off" /></label>
-      <label class="check-row"><input id="rememberTokens" type="checkbox" /> Remember API tokens on this device</label>
-      <div class="update-box"><div><strong>App updates</strong><span id="versionLabel" class="meta">Checking version...</span></div><button id="updateButton" class="button subtle" type="button">Check for updates</button></div>
-      <p id="updateStatus" class="hint"></p>
+
+    <!-- Settings Dialog -->
+    <dialog id="settingsDialog" class="settings-dialog" aria-labelledby="settings-title">
+      <div class="dialog-heading">
+        <div>
+          <p class="eyebrow">Preferences</p>
+          <h2 id="settings-title">Settings</h2>
+        </div>
+        <button id="closeSettings" class="dialog-close" type="button" aria-label="Close settings">×</button>
+      </div>
+
+      <form id="settingsForm">
+        <label for="apiKey">
+          CtrlEm API Key
+          <span>Your personal API key from CtrlEm</span>
+        </label>
+        <input id="apiKey" type="password" placeholder="ce_..." autocomplete="off" aria-describedby="apiKey-hint" />
+        <p id="apiKey-hint" class="hint">Get your API key from <a href="https://ctrlem.com/settings" target="_blank" rel="noopener noreferrer">ctrlem.com/settings</a></p>
+
+        <label for="imageChestToken">
+          ImageChest Personal Access Token
+          <span>For uploading images directly from this app</span>
+        </label>
+        <input id="imageChestToken" type="password" placeholder="Personal access token" autocomplete="off" aria-describedby="token-hint" />
+        <p id="token-hint" class="hint">Create a token at <a href="https://imgchest.com/settings/tokens" target="_blank" rel="noopener noreferrer">imgchest.com/settings/tokens</a></p>
+
+        <label class="check-row">
+          <input id="rememberTokens" type="checkbox" />
+          <span>Remember API tokens on this device (stored locally in browser)</span>
+        </label>
+
+        <div class="update-box">
+          <div class="update-info">
+            <strong>App Updates</strong>
+            <span id="versionLabel" class="meta">Checking version...</span>
+          </div>
+          <button id="updateButton" class="button subtle" type="button">Check for updates</button>
+        </div>
+        <p id="updateStatus" class="hint"></p>
+      </form>
     </dialog>
+
     <script src="/app.js"></script>
   </body>
 </html>
