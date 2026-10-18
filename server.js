@@ -67,6 +67,51 @@ async function uploadToImageChest(request, response) {
   } catch {
     return sendJson(response, 400, { error: "Request body must be valid JSON." });
   }
+
+  async function listImageChestPosts(request, response) {
+    let body;
+    try {
+      body = await readBody(request);
+    } catch {
+      return sendJson(response, 400, { error: "Request body must be valid JSON." });
+    }
+    if (!body.token?.trim()) return sendJson(response, 400, { error: "An ImageChest token is required." });
+
+    try {
+      const authHeaders = { Authorization: `Bearer ${body.token.trim()}` };
+      const userResponse = await fetch(`${imageChestBase}/users/me`, {
+        headers: authHeaders,
+        signal: AbortSignal.timeout(30000)
+      });
+      const userText = await userResponse.text();
+      const userResult = JSON.parse(userText);
+      if (!userResponse.ok || !userResult.data?.name) {
+        return sendJson(response, userResponse.status, { ok: false, status: userResponse.status, result: userResult });
+      }
+
+      const posts = [];
+      let page = 1;
+      let lastPage = 1;
+      do {
+        const postsResponse = await fetch(
+          `${imageChestBase}/user/${encodeURIComponent(userResult.data.name)}/posts?per_page=100&sort=new&page=${page}`,
+          { headers: authHeaders, signal: AbortSignal.timeout(30000) }
+        );
+        const postsText = await postsResponse.text();
+        const postsResult = JSON.parse(postsText);
+        if (!postsResponse.ok) {
+          return sendJson(response, postsResponse.status, { ok: false, status: postsResponse.status, result: postsResult });
+        }
+        posts.push(...(postsResult.data || []));
+        lastPage = postsResult.meta?.last_page || 1;
+        page += 1;
+      } while (page <= lastPage);
+
+      return sendJson(response, 200, { ok: true, result: { posts } });
+    } catch (error) {
+      return sendJson(response, 502, { error: `ImageChest lookup failed: ${error.message}` });
+    }
+  }
   if (!body.token?.trim() || !Array.isArray(body.images) || body.images.length === 0) {
     return sendJson(response, 400, { error: "An ImageChest token and at least one image are required." });
   }
@@ -123,6 +168,7 @@ function createAppServer() {
   if (request.method === "POST" && request.url === "/api/users") return proxyApi(request, response, "/users", "GET");
   if (request.method === "POST" && request.url === "/api/command") return proxyApi(request, response, "/command");
   if (request.method === "POST" && request.url === "/api/imgchest/upload") return uploadToImageChest(request, response);
+  if (request.method === "POST" && request.url === "/api/imgchest/posts") return listImageChestPosts(request, response);
   if (request.method === "GET") return serveStatic(request, response);
   sendJson(response, 405, { error: "Method not allowed." });
   });

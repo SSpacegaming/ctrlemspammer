@@ -32,13 +32,28 @@ async function uploadImages() {
   state.uploading = true;
   notice(mode === "batch" ? `Uploading ${files.length} images as one ImageChest post...` : `Uploading 0 of ${files.length} images to ImageChest...`);
   render();
+  let existingTitles;
+  try {
+    existingTitles = await getImageChestTitles(token);
+  } catch (error) {
+    state.uploading = false;
+    render();
+    return notice(error instanceof TypeError ? "Could not reach the local server. Make sure the app is running, then try again." : error.message, true);
+  }
   if (mode === "batch") {
+    const batchTitle = `CtrlEm batch: ${files.map((file) => file.name).join(", ")}`;
+    if (existingTitles.has(batchTitle)) {
+      $("imageFiles").value = "";
+      state.uploading = false;
+      render();
+      return notice("This batch title already exists on ImageChest; nothing was uploaded.", true);
+    }
     try {
       const images = await Promise.all(files.map(async (file) => ({ name: file.name, type: file.type, data: await asBase64(file) })));
       const response = await fetch("/api/imgchest/upload", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token, title: "CtrlEm image queue", images })
+        body: JSON.stringify({ token, title: batchTitle, images })
       });
       const data = await response.json();
       if (!response.ok || !data.ok) throw new Error(data.result?.message || data.result?.error || data.error || `Upload failed (${data.status})`);
@@ -63,13 +78,19 @@ async function uploadImages() {
   let uploaded = 0;
   for (let index = 0; index < files.length; index++) {
     const file = files[index];
+    const titlePrefix = file.name;
+    const title = `${titlePrefix}+#${index + 1}`;
+    if (existingTitles.has(title)) {
+      uploaded += 1;
+      notice(`Skipped ${file.name}: already exists on ImageChest.`);
+      continue;
+    }
     try {
       const image = { name: file.name, type: file.type, data: await asBase64(file) };
-      const titlePrefix = file.name;
       const response = await fetch("/api/imgchest/upload", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token, title: `${titlePrefix}+#${index + 1}`, images: [image] })
+        body: JSON.stringify({ token, title, images: [image] })
       });
       const data = await response.json();
       if (!response.ok || !data.ok) throw new Error(data.result?.message || data.result?.error || data.error || `Upload failed (${data.status})`);
@@ -80,7 +101,7 @@ async function uploadImages() {
         command: $("command").value,
         status: "",
         statusLabel: "Queued",
-        filename: `${titlePrefix}+#${index + 1}`,
+        filename: title,
         mediaType: file.type
       });
       uploaded += 1;
@@ -94,6 +115,18 @@ async function uploadImages() {
   state.uploading = false;
   if (uploaded) notice(`${uploaded} image${uploaded === 1 ? "" : "s"} uploaded and added to the queue.`);
   render();
+}
+async function getImageChestTitles(token) {
+  const response = await fetch("/api/imgchest/posts", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ token })
+  });
+  const data = await response.json();
+  if (!response.ok || !data.ok) {
+    throw new Error(data.result?.message || data.result?.error || data.error || `ImageChest lookup failed (${data.status})`);
+  }
+  return new Set((data.result.posts || []).map((post) => post.title).filter(Boolean));
 }
 async function asBase64(file) {
   const buffer = await file.arrayBuffer();
@@ -111,18 +144,40 @@ async function sendQueue() {
   if (!apiKey) return notice("Enter your API key first.", true);
   if (!/^[A-Z0-9]{5}$/.test(target)) return notice("Enter a valid 5-character control code.", true);
   state.sending = true; notice("Sending queue. CtrlEm allows one command every 3 seconds per user."); render();
+  let stoppedForApiAccess = false;
   for (let i = 0; i < state.items.length; i++) {
     const item = state.items[i]; item.status = "sending"; item.statusLabel = "Sending..."; render();
     try {
       const response = await fetch("/api/command", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ apiKey, payload:{ target, command:item.command, argument:item.url } }) });
       const data = await response.json();
-      if (!response.ok || !data.ok) throw new Error(data.result?.error || data.error || `Request failed (${data.status})`);
+      if (!response.ok || !data.ok) {
+        const error = new Error(data.result?.error || data.error || `Request failed (${data.status})`);
+        error.status = response.status;
+        throw error;
+      }
       item.status = "success"; item.statusLabel = "Sent";
-    } catch (error) { item.status = "error"; item.statusLabel = error.message.slice(0, 28); }
+    } catch (error) {
+      item.status = "error";
+      item.statusLabel = error.message.slice(0, 28);
+      if (isApiAccessDenied(error)) {
+        for (let remaining = i + 1; remaining < state.items.length; remaining++) {
+          state.items[remaining].status = "error";
+          state.items[remaining].statusLabel = "Skipped: API access";
+        }
+        stoppedForApiAccess = true;
+        notice("CtrlEm denied API access for this user. The remaining queue was stopped.", true);
+        break;
+      }
+    }
     render();
     if (i < state.items.length - 1) await new Promise((resolve) => setTimeout(resolve, 3000));
   }
-  state.sending = false; notice("Queue finished. Review any items marked with an error."); render();
+  state.sending = false;
+  if (!stoppedForApiAccess) notice("Queue finished. Review any items marked with an error.");
+  render();
+}
+function isApiAccessDenied(error) {
+  return error.status === 403 || /api access|opted in|permission|not allowed/i.test(error.message);
 }
 $("addButton").addEventListener("click", addImage); $("uploadButton").addEventListener("click", uploadImages); $("sendButton").addEventListener("click", sendQueue);
 $("uploadMode").addEventListener("change", () => {
