@@ -29,6 +29,8 @@ The app uses the documented CtrlEm API:
 
 The API keys and ImageChest token are kept in the browser and proxied only through the local server; they are not stored on disk.
 
+The app can optionally remember both tokens in the browser's local storage when **Remember API tokens on this device** is enabled. Saved control codes are also stored locally with a name so they can be swapped from the dropdown. Disable token remembering to remove the cached tokens.
+
 ## ImageChest setup
 
 Create a personal access token from your ImageChest profile's security tab. Select **Batch** to upload up to 20 images in one post, or **Individual** to upload any number one at a time. Both use `privacy=hidden` and `nsfw=true`; individual titles use `{filename}+#1`, `{filename}+#2`, and so on. ImageChest calls `hidden` the unlisted option.

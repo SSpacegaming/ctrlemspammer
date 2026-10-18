@@ -19,6 +19,13 @@
           <label>API key<input id="apiKey" type="password" placeholder="ce_..." autocomplete="off" /></label>
           <label>Target control code<input id="target" type="text" maxlength="5" pattern="[A-Za-z0-9]{5}" placeholder="AB12C" autocomplete="off" /></label>
         </div>
+        <div class="saved-code-row">
+          <select id="savedCodes" aria-label="Saved control codes"><option value="">Saved control codes</option></select>
+          <input id="codeName" type="text" placeholder="Name this control code" />
+          <button id="saveCodeButton" class="button subtle" type="button">Save code</button>
+          <button id="deleteCodeButton" class="button subtle" type="button" disabled>Delete</button>
+        </div>
+        <label class="check-row"><input id="rememberTokens" type="checkbox" /> Remember API tokens on this device</label>
         <p class="hint">Enter the 5-character control code of the person you want to target. The user must be online and opted in to API access.</p>
       </section>
       <section class="panel">
