@@ -2,12 +2,14 @@ import { createServer } from "node:http";
 import { readFile } from "node:fs/promises";
 import { extname, join, normalize } from "node:path";
 import { fileURLToPath } from "node:url";
+import { readFileSync } from "node:fs";
 
 const root = process.pkg ? join(process.execPath, "..") : fileURLToPath(new URL(".", import.meta.url));
 const publicDir = join(root, "public");
 const configuredPort = Number(process.env.PORT || 3000);
 const apiBase = "https://ctrlem.com/api/v1";
 const imageChestBase = "https://api.imgchest.com/v1";
+const appVersion = JSON.parse(readFileSync(join(root, "package.json"), "utf8")).version;
 const mimeTypes = {
   ".css": "text/css; charset=utf-8",
   ".html": "text/html; charset=utf-8",
@@ -20,6 +22,13 @@ function sendJson(response, status, body) {
     "Cache-Control": "no-store"
   });
   response.end(JSON.stringify(body));
+}
+
+function sendVersion(response) {
+  return sendJson(response, 200, {
+    version: appVersion,
+    repository: "SSpacegaming/ctrlemspammer"
+  });
 }
 
 async function readBody(request) {
@@ -165,6 +174,7 @@ async function serveStatic(request, response) {
 
 function createAppServer() {
   return createServer(async (request, response) => {
+  if (request.method === "GET" && request.url === "/api/version") return sendVersion(response);
   if (request.method === "POST" && request.url === "/api/users") return proxyApi(request, response, "/users", "GET");
   if (request.method === "POST" && request.url === "/api/command") return proxyApi(request, response, "/command");
   if (request.method === "POST" && request.url === "/api/imgchest/upload") return uploadToImageChest(request, response);

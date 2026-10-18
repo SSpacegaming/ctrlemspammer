@@ -64,6 +64,35 @@ function cacheTokens() {
   } else {
     localStorage.removeItem(tokenKey);
   }
+  async function checkForUpdates() {
+    $("updateButton").disabled = true;
+    $("updateStatus").textContent = "Checking GitHub...";
+    try {
+      const local = await fetch("/api/version").then((response) => response.json());
+      $("versionLabel").textContent = `Current v${local.version}`;
+      const latest = await fetch("https://api.github.com/repos/SSpacegaming/ctrlemspammer/releases/latest", {
+        headers: { Accept: "application/vnd.github+json" }
+      }).then(async (response) => {
+        if (!response.ok) throw new Error(`GitHub returned ${response.status}`);
+        return response.json();
+      });
+      if (compareVersions(latest.tag_name, local.version) > 0) {
+        $("updateStatus").innerHTML = `Update available: <a href="${esc(latest.html_url)}" target="_blank" rel="noreferrer">v${esc(latest.tag_name.replace(/^v/, ""))}</a>`;
+      } else {
+        $("updateStatus").textContent = "You are using the latest version.";
+      }
+    } catch (error) {
+      $("updateStatus").textContent = `Could not check for updates: ${error.message}`;
+    } finally {
+      $("updateButton").disabled = false;
+    }
+  }
+  function compareVersions(left, right) {
+    const parse = (value) => String(value).replace(/^v/, "").split(".").map((part) => Number.parseInt(part, 10) || 0);
+    const a = parse(left), b = parse(right);
+    for (let i = 0; i < 3; i++) if ((a[i] || 0) !== (b[i] || 0)) return (a[i] || 0) - (b[i] || 0);
+    return 0;
+  }
 }
 function render() {
   $("queueCount").textContent = state.items.length;
@@ -243,6 +272,9 @@ function isApiAccessDenied(error) {
   return error.status === 403 || /api access|opted in|permission|not allowed/i.test(error.message);
 }
 $("addButton").addEventListener("click", addImage); $("uploadButton").addEventListener("click", uploadImages); $("sendButton").addEventListener("click", sendQueue);
+$("settingsButton").addEventListener("click", () => $("settingsDialog").showModal());
+$("closeSettings").addEventListener("click", () => $("settingsDialog").close());
+$("updateButton").addEventListener("click", checkForUpdates);
 $("savedCodes").addEventListener("change", () => {
   if ($("savedCodes").value) {
     $("target").value = $("savedCodes").value;
@@ -265,4 +297,5 @@ $("queue").addEventListener("click", (e) => { const i = e.target.dataset.remove;
 $("clearButton").addEventListener("click", () => { if (!state.sending) { state.items = []; render(); } });
 loadCachedTokens();
 renderSavedCodes();
+checkForUpdates();
 render();

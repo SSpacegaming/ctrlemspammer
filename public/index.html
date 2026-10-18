@@ -9,31 +9,24 @@
   <body>
     <main class="shell">
       <header class="hero">
-        <p class="eyebrow">CtrlEm utility</p>
+        <div class="hero-top"><p class="eyebrow">CtrlEm utility</p><button id="settingsButton" class="button subtle" type="button">Settings</button></div>
         <h1>Image queue</h1>
         <p class="lede">Send a run of image commands without repeating the same setup.</p>
       </header>
       <section class="panel">
         <div class="panel-heading"><div><p class="eyebrow">Connection</p><h2>Choose a target</h2></div><span class="privacy">Your key never leaves this local app</span></div>
-        <div class="grid">
-          <label>API key<input id="apiKey" type="password" placeholder="ce_..." autocomplete="off" /></label>
-          <label>Target control code<input id="target" type="text" maxlength="5" pattern="[A-Za-z0-9]{5}" placeholder="AB12C" autocomplete="off" /></label>
-        </div>
+        <div class="grid"><label>Target control code<input id="target" type="text" maxlength="5" pattern="[A-Za-z0-9]{5}" placeholder="AB12C" autocomplete="off" /></label></div>
         <div class="saved-code-row">
           <select id="savedCodes" aria-label="Saved control codes"><option value="">Saved control codes</option></select>
           <input id="codeName" type="text" placeholder="Name this control code" />
           <button id="saveCodeButton" class="button subtle" type="button">Save code</button>
           <button id="deleteCodeButton" class="button subtle" type="button" disabled>Delete</button>
         </div>
-        <label class="check-row"><input id="rememberTokens" type="checkbox" /> Remember API tokens on this device</label>
         <p class="hint">Enter the 5-character control code of the person you want to target. The user must be online and opted in to API access.</p>
       </section>
       <section class="panel">
         <div class="panel-heading"><div><p class="eyebrow">Image hosting</p><h2>ImageChest uploads</h2></div><span class="privacy">Unlisted · NSFW marked</span></div>
-        <div class="grid">
-          <label>ImageChest personal access token<input id="imageChestToken" type="password" placeholder="Personal access token" autocomplete="off" /></label>
-          <label>Upload mode<select id="uploadMode"><option value="individual">Individual · no limit</option><option value="batch">Batch · up to 20</option></select></label>
-        </div>
+        <div class="grid"><label>Upload mode<select id="uploadMode"><option value="individual">Individual · no limit</option><option value="batch">Batch · up to 20</option></select></label></div>
         <div class="upload-row">
           <label class="file-picker">Select images
             <input id="imageFiles" type="file" accept="image/*,video/*" multiple />
@@ -54,6 +47,14 @@
       </section>
       <p id="notice" class="notice" role="status"></p>
     </main>
+    <dialog id="settingsDialog" class="settings-dialog">
+      <div class="dialog-heading"><div><p class="eyebrow">Preferences</p><h2>Settings</h2></div><button id="closeSettings" class="remove" type="button">×</button></div>
+      <label>CtrlEm API key<input id="apiKey" type="password" placeholder="ce_..." autocomplete="off" /></label>
+      <label>ImageChest personal access token<input id="imageChestToken" type="password" placeholder="Personal access token" autocomplete="off" /></label>
+      <label class="check-row"><input id="rememberTokens" type="checkbox" /> Remember API tokens on this device</label>
+      <div class="update-box"><div><strong>App updates</strong><span id="versionLabel" class="meta">Checking version...</span></div><button id="updateButton" class="button subtle" type="button">Check for updates</button></div>
+      <p id="updateStatus" class="hint"></p>
+    </dialog>
     <script src="/app.js"></script>
   </body>
 </html>
